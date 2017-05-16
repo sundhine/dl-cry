@@ -1,0 +1,14 @@
+name: dl-cry
+version: 0.1.0
+
+authors:
+  - sundhine <ed.ingold@gmail.com>
+
+targets:
+  dl-cry:
+    main: src/dl-cry.cr
+
+crystal: 0.22.0
+
+license: MIT
+ 

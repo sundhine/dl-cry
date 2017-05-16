@@ -1,0 +1,5 @@
+files: ./**/*.cr
+run: crystal build --no-debug ./src/dl-cry.cr
+---
+files: ./shard.yml
+run: crystal deps
