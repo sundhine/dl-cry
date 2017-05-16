@@ -161,9 +161,9 @@ end
 
 include Dl::Cry
 
-# puts "Loading data..."
-# data = DataProcessing.data
-# puts "...data loaded"
+puts "Loading data..."
+data = DataProcessing.data
+puts "...data loaded"
 
-# net = Network.new([784, 30, 10])
-# net.sgd(data[:training_data], 30, 10, 3.0, data[:test_data])
+net = Network.new([784, 60, 30, 10])
+net.sgd(data[:training_data], 30, 10, 3.0, data[:test_data])

@@ -8,6 +8,7 @@ module NumCry
   end
 
   class Matrix
+    @b : Pointer(Float64)
     @[AlwaysInline]
     protected def lookup(x, y) : Int32
       (x * @y) + y
@@ -19,7 +20,7 @@ module NumCry
       a = input_matrix.first.size
       input_matrix.skip(1).each { |arr|
         if arr.size != a
-          raise "BAD ARRAY: " + @matrix.to_s
+          raise "BAD ARRAY: " + input_matrix.to_s
         end
       }
       y = a
@@ -30,87 +31,91 @@ module NumCry
     end
 
     def initialize(@x : Int32, @y : Int32)
-      @matrix = Array(Float64).new(@x * @y, 0.0)
-      b = @matrix.to_unsafe
-      (0...@x).each { |xi|
-        (0...@y).each { |yi|
-          b[lookup(xi, yi)] = yield xi, yi
-        }
-      }
+      @b = Array(Float64).new(@x * @y).to_unsafe
+
+      x = 0
+      while x < @x
+        y = 0
+        while y < @y
+          @b[lookup(x, y)] = yield x, y
+          y += 1
+        end
+        x += 1
+      end
     end
 
     def -
       Matrix.new(@x, @y) do |x, y|
-        @matrix[lookup(x, y)] * -1
+        @b[lookup(x, y)] * -1
       end
     end
 
     def +(other : Number)
       Matrix.new(@x, @y) do |x, y|
-        @matrix[lookup(x, y)] + other
+        @b[lookup(x, y)] + other
       end
     end
 
     def +(other : Matrix)
       if @x != other.@x || @y != other.@y
-        raise @matrix.to_s + " " + other.@matrix.to_s
+        raise @b.to_s + " " + other.@b.to_s
       end
 
       Matrix.new(@x, @y) do |x, y|
         arr_lookup = lookup(x, y)
-        @matrix[arr_lookup] + other.@matrix[arr_lookup]
+        @b[arr_lookup] + other.@b[arr_lookup]
       end
     end
 
     def -(other : Number)
       Matrix.new(@x, @y) do |x, y|
-        @matrix[lookup(x, y)] - other
+        @b[lookup(x, y)] - other
       end
     end
 
     def -(other : Matrix)
       if @x != other.@x || @y != other.@y
-        raise @matrix.to_s + " " + other.@matrix.to_s
+        raise @b.to_s + " " + other.@b.to_s
       end
 
       Matrix.new(@x, @y) do |x, y|
         arr_lookup = lookup(x, y)
-        @matrix[arr_lookup] - other.@matrix[arr_lookup]
+        @b[arr_lookup] - other.@b[arr_lookup]
       end
     end
 
     def /(other)
       Matrix.new(@x, @y) do |x, y|
-        @matrix[lookup(x, y)] / other
+        @b[lookup(x, y)] / other
       end
     end
 
     def *(other : Matrix)
       if @x != other.@x || @y != other.@y
-        raise @matrix.to_s + " " + other.@matrix.to_s
+        raise @b.to_s + " " + other.@b.to_s
       end
 
       Matrix.new(@x, @y) do |x, y|
         arr_lookup = lookup(x, y)
-        @matrix[arr_lookup] * other.@matrix[arr_lookup]
+        @b[arr_lookup] * other.@b[arr_lookup]
       end
     end
 
     def *(other : Number)
       Matrix.new(@x, @y) do |x, y|
-        @matrix[lookup(x, y)] * other
+        @b[lookup(x, y)] * other
       end
     end
 
     def exp
       Matrix.new(@x, @y) do |x, y|
-        Math.exp(@matrix[lookup(x, y)])
+        Math.exp(@b[lookup(x, y)])
       end
     end
 
     def map
       Matrix.new(@x, @y) do |x, y|
-        yield @matrix[lookup(x, y)]
+        yield @b[lookup(x, y)]
       end
     end
 
@@ -120,14 +125,19 @@ module NumCry
       end
       s = @x
       Matrix.new(m.@x, @y) do |x, y|
-        (0...s).map { |n| @matrix[lookup(n, y)] * m.@matrix[m.lookup(x, n)] }
-               .reduce { |a, b| a + b }
+        n = 0
+        sum = 0
+        while n < s
+          sum += @b[lookup(n, y)] * m.@b[m.lookup(x, n)]
+          n += 1
+        end
+        sum.to_f
       end
     end
 
     def transpose
       Matrix.new(@y, @x) do |x, y|
-        @matrix[lookup(y, x)]
+        @b[lookup(y, x)]
       end
     end
 
@@ -138,7 +148,7 @@ module NumCry
       _, index = (0...@y).reduce({Float64::MIN, -1}) do |acc, i|
         counter = acc[0]
         arr_i = lookup(0, i)
-        counter > @matrix[arr_i] ? acc : {@matrix[lookup(0, i)], i}
+        counter > @b[arr_i] ? acc : {@b[lookup(0, i)], i}
       end
 
       Matrix.new(1, @y) do |_, y|
@@ -156,7 +166,7 @@ module NumCry
       end
 
       (0...@x * @y).each do |i|
-        if @matrix[i] != m.@matrix[i]
+        if @b[i] != m.@b[i]
           return false
         end
       end
@@ -171,7 +181,7 @@ module NumCry
       (0...@x).each { |i|
         io << "["
         (0...@y).each { |j|
-          io << @matrix[lookup(i, j)]
+          io << @b[lookup(i, j)]
           io << ", "
         }
         io << "]"
