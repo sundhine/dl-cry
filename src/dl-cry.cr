@@ -161,19 +161,9 @@ end
 
 include Dl::Cry
 
-# m1 = Matrix.new(3, 4) do |x, y|
-#   (x + y).to_f
-# end
+# puts "Loading data..."
+# data = DataProcessing.data
+# puts "...data loaded"
 
-# m2 = Matrix.new(6, 3) do |x, y|
-#   (x + y).to_f
-# end
-
-# puts m1.dot(m2)
-
-puts "Loading data..."
-data = DataProcessing.data
-puts "...data loaded"
-
-net = Network.new([784, 30, 10])
-net.sgd(data[:training_data], 30, 10, 3.0, data[:test_data])
+# net = Network.new([784, 30, 10])
+# net.sgd(data[:training_data], 30, 10, 3.0, data[:test_data])
