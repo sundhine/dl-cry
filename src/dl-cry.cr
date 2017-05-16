@@ -161,6 +161,16 @@ end
 
 include Dl::Cry
 
+# m1 = Matrix.new(3, 4) do |x, y|
+#   (x + y).to_f
+# end
+
+# m2 = Matrix.new(6, 3) do |x, y|
+#   (x + y).to_f
+# end
+
+# puts m1.dot(m2)
+
 puts "Loading data..."
 data = DataProcessing.data
 puts "...data loaded"
